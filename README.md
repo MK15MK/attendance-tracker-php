@@ -2,8 +2,6 @@
 
 A small PHP + MySQL attendance and staff-details tracker: session-based login, daily attendance logging, a staff details register, a live dashboard, and CSV export.
 
-**Live demo:** _add your hosted URL here once deployed (see Deployment below)_
-
 ## Contents
 
 - [Features](#features)
