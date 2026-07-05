@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Records</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<style>
+    body {
+        background: inherit;
+        color: #fff;
+        font-family: inherit;
+        overflow: hidden;
+    }
+    .btn {
+        color: #fff;
+        background-color: #ac3b61;
+    }
+    .container-fluid {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 20px;
+        border-radius: 10px;
+    }
+    .table-container {
+        margin-top: 20px;
+    }
+</style>
+
+<body>
+    <div class="container-fluid">
+        <h1>Download Records</h1>
+
+        <form action="download.php" method="POST">
+            <div class="form-group">
+                <label for="table_name">Table Name:</label>
+                <select name="table_name" id="table_name" class="form-control" required>
+                    <option value="Attendance">Attendance</option>
+                    <option value="Details">Details</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn">Download</button>
+        </form>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

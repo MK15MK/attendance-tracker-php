@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Dashboard</title>
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <style>
+       body {
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           height: 100vh;
+           overflow-x: hidden;
+           overflow: hidden;
+           font-family: inherit;
+       }
+       .container-fluid {
+           background: rgba(255, 255, 255, 0.2);
+           padding: 20px;
+           border-radius: 10px; 
+           margin-bottom: 9px;
+       }
+       #chartContainer {
+           position: relative;
+           width: 400px;
+           height: 400px;
+       }
+       .chart-title {
+           position: absolute;
+           top: 10px; /* Add 10px space from the top */
+           left: 0;
+           right: 0;
+           text-align: center;
+           font-size: 20px;
+           color: #fff;
+       }
+       .totalCandidates {
+           text-align: center;
+           font-family: inherit;
+           color: #fff;
+           margin-right: 10px;
+       }
+       .container {
+           text-align: center;
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+       }
+       .row {
+           display: flex;
+       }
+       #attendanceChart {
+           margin-top: 30px; /* Add 30px space between name and pie chart */
+       }
+   </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="totalCandidates">
+                    <div class="container-fluid">
+                        <p>Total interns</p>
+                        <span id="totalCandidates"></span>
+                    </div>
+                    <div class="container-fluid">
+                        <p>Total present days</p>
+                        <span id="presentCandidates"></span>
+                    </div>
+                    <div class="container-fluid">
+                        <p>Total absent days</p>
+                        <span id="absentCandidates"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div id="chartContainer">
+                    <div class="chart-title">Overall Attendance</div>
+                    <div class="container-fluid">
+                        <canvas id="attendanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function updateStatistics(data) {
+            const totalCandidatesElem = document.getElementById('totalCandidates');
+            const presentCandidatesElem = document.getElementById('presentCandidates');
+            const absentCandidatesElem = document.getElementById('absentCandidates');
+
+            totalCandidatesElem.textContent = data.totalCandidates;
+            presentCandidatesElem.textContent = data.present;
+            absentCandidatesElem.textContent = data.absent;
+        }
+
+        function renderPieChart(present, absent) {
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Present', 'Absent'],
+                    datasets: [{
+                        data: [present, absent],
+                        backgroundColor: ['#36A2EB', '#FF6384'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    tooltips: {
+                        callbacks: {
+                            label: function (tooltipItem, data) {
+                                const dataIndex = tooltipItem.index;
+                                if (dataIndex === 0) {
+                                    return 'Present: ' + present;
+                                } else if (dataIndex === 1) {
+                                    return 'Absent: ' + absent;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        fetch('dashboard.php')
+            .then(response => response.json())
+            .then(data => {
+                const present = data.present;
+                const absent = data.absent;
+
+                updateStatistics(data);
+
+                renderPieChart(present, absent);
+            })
+            .catch(error => console.log(error));
+    </script>
+
+</body>
+</html>

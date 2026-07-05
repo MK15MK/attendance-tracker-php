@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Attendance Page</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.css" />
+  <style>
+    body {
+      background: inherit;
+      color: #fff;
+      font-family: inherit;
+      padding: 20px;
+      overflow: hidden;
+    }
+    .btn{
+      color: #fff;
+      background-color: #ac3b61;
+    }
+    .container-fluid {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .attendance-table {
+      margin: 0 auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="col-lg-12">
+      <h3>Add Attendance</h3>
+      <form id="attendanceForm">
+        <div class="row">
+          <div class="form-group col-lg-6">
+            <label for="existingNameInput">Name:</label>
+            <select class="form-control" id="existingNameInput" required>
+              <option value="">Select a name</option>
+            </select>
+          </div>
+          <div class="form-group col-lg-6">
+            <div class="form-group">
+              <label for="dateInput">Date:</label>
+              <input type="date" class="form-control" id="dateInput" required>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group col-lg-6">
+            <label for="timeInput">Time:</label>
+            <input type="time" class="form-control" id="timeInput" required readonly>
+          </div>
+
+          <div class="form-group col-lg-6">
+            <label for="attendanceInput">Attendance:</label>
+            <select class="form-control" id="attendanceInput" required>
+              <option value="">Select</option>
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn">Submit</button>
+      </form>
+    </div>
+    <div class="col-lg-12 center">
+      <div class="attendance-table">
+        <h3>Attendance Table</h3>
+        <table id="attendanceTable" class="table table-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Attendance</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceTableBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.js"></script>
+  <script>
+    function populateNamesDropdown(names) {
+      var nameDropdown = document.getElementById('existingNameInput');
+      nameDropdown.innerHTML = '<option value="">Select a name</option>';
+      names.forEach(function (name) {
+        var option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        nameDropdown.appendChild(option);
+      });
+    }
+
+    function populateAttendanceTable(attendance) {
+      var tableBody = document.getElementById('attendanceTableBody');
+      tableBody.innerHTML = '';
+      attendance.forEach(function (record) {
+        var tableRow = document.createElement('tr');
+        ['name', 'date', 'time', 'attendance'].forEach(function (key) {
+          var cell = document.createElement('td');
+          cell.textContent = record[key];
+          tableRow.appendChild(cell);
+        });
+        tableBody.appendChild(tableRow);
+      });
+    }
+
+    document.getElementById('attendanceForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var name = document.getElementById('existingNameInput').value;
+      var date = document.getElementById('dateInput').value;
+      var time = document.getElementById('timeInput').value;
+      var attendance = document.getElementById('attendanceInput').value;
+
+      var attendanceExists = Array.from(document.querySelectorAll('#attendanceTableBody tr')).some(function (row) {
+        return row.cells[0].textContent === name && row.cells[1].textContent === date;
+      });
+
+      if (attendanceExists) {
+        alert('Attendance for this person on the selected date already exists.');
+        return;
+      }
+
+      var formData = new FormData();
+      formData.append('name', name);
+      formData.append('date', date);
+      formData.append('time', time);
+      formData.append('attendance', attendance);
+
+      fetch('add_attendance.php', {
+        method: 'POST',
+        body: formData
+      })
+        .then(function (response) {
+          if (response.ok) {
+            alert('Attendance recorded successfully.');
+            document.getElementById('dateInput').value = '';
+            document.getElementById('timeInput').value = '';
+            document.getElementById('attendanceInput').value = '';
+
+            fetchAttendance();
+          } else {
+            throw new Error('Error: ' + response.status);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    });
+
+    function getCurrentDateTime() {
+      var now = new Date();
+
+      var year = now.getFullYear();
+      var month = String(now.getMonth() + 1).padStart(2, '0');
+      var day = String(now.getDate()).padStart(2, '0');
+
+      var hours = String(now.getHours()).padStart(2, '0');
+      var minutes = String(now.getMinutes()).padStart(2, '0');
+
+      var currentDate = year + '-' + month + '-' + day;
+      var currentTime = hours + ':' + minutes;
+
+      return { currentDate, currentTime };
+    }
+
+    function fetchNames() {
+      fetch('get_names.php')
+        .then(function (response) {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Error: ' + response.status);
+          }
+        })
+        .then(function (data) {
+          populateNamesDropdown(data.names);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+
+    function fetchAttendance() {
+      fetch('get_attendance.php')
+        .then(function (response) {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Error: ' + response.status);
+          }
+        })
+        .then(function (data) {
+          populateAttendanceTable(data.attendance);
+
+          $('#attendanceTable').DataTable();
+
+          var { currentDate, currentTime } = getCurrentDateTime();
+          document.getElementById('dateInput').value = currentDate;
+          document.getElementById('timeInput').value = currentTime;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+
+    setInterval(function () {
+      fetchAttendance();
+    }, 1000);
+
+    fetchNames();
+    fetchAttendance();
+  </script>
+</body>
+
+</html>
